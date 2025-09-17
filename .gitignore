@@ -1,0 +1,55 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Python (if you use it)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Node (rare, but harmless)
+node_modules/
+
+# Data & exports (never commit PHI / raw data)
+data/
+input/
+output/
+*.csv
+*.tsv
+*.xlsx
+*.jsonl
+*.parquet
+*.zip
+*.gz
+*.bak
+*.log
+*.tmp
+*.cache/
+
+# Secrets / keys
+.env
+*.env
+secrets.*
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# DB artifacts
+*.dump
+*.sql.gz
+*.duckdb
+
+# Power BI / binaries (optional to track—usually large)
+*.pbix
+*.pbit
+
+# DBeaver/ADS workspace junk
+.dbeaver/
