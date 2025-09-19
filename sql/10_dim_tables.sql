@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS mart.dim_unit (
     unit_code       TEXT UNIQUE NOT NULL,
     level_label     TEXT,
     base_name       TEXT,
-    active_from_utc TIMESTAMPTZ,
-    active_to_utc   TIMESTAMPTZ
+    active_from TIMESTAMP WITHOUT TIME ZONE,
+    active_to   TIMESTAMP WITHOUT TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS mart.dim_destination (

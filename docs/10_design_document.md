@@ -56,9 +56,13 @@ Data is structured into **four zones**:
 ---
 
 # Keys and Rules
-- Natural key is the unique eMeds PCR number labeled as `pcr_number`.
-- Newer-wins via `last_modified_utc`.
-- Time chronology rule (notified < enroute < at_scene ...)
+Natural key is the unique eMeds PCR number labeled as pcr_number.
+
+Timestamps: All datetime fields are stored as provided by Report Writer in local time (America/New_York) using TIMESTAMP WITHOUT TIME ZONE.
+
+Incremental load (“newer wins”) compares last_modified (local time) within the same source feed.
+
+Chronology rule: notified ≤ enroute ≤ at_scene ≤ depart_scene ≤ at_dest ≤ back_in_service — evaluated in local time.
 ---
 
 # Business Rules
