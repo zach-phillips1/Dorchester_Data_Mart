@@ -12,8 +12,8 @@ WITH keys AS (
 INSERT INTO mart.fact_incident (
   pcr_number, incident_number, unit_key, dest_key, disp_key,
   miles_transport, primary_impression_code, primary_impression_label,
-  call_created_utc, notified_utc, enroute_utc, at_scene_utc, depart_scene_utc,
-  at_dest_utc, back_in_service_utc, last_modified_utc
+  call_created, notified, enroute, at_scene, depart_scene,
+  at_dest, back_in_service, last_modified
 )
 SELECT
   pcr_number, incident_number, unit_key, dest_key, disp_key,
@@ -28,12 +28,12 @@ SET incident_number = EXCLUDED.incident_number,
     miles_transport = EXCLUDED.miles_transport,
     primary_impression_code = EXCLUDED.primary_impression_code,
     primary_impression_label = EXCLUDED.primary_impression_label,
-    call_created_utc = EXCLUDED.call_created_utc,
-    notified_utc = EXCLUDED.notified_utc,
-    enroute_utc = EXCLUDED.enroute_utc,
-    at_scene_utc = EXCLUDED.at_scene_utc,
-    depart_scene_utc = EXCLUDED.depart_scene_utc,
-    at_dest_utc = EXCLUDED.at_dest_utc,
-    back_in_service_utc = EXCLUDED.back_in_service_utc,
-    last_modified_utc = EXCLUDED.last_modified_utc
-WHERE mart.fact_incident.last_modified_utc < EXCLUDED.last_modified_utc;
+    call_created = EXCLUDED.call_created,
+    notified = EXCLUDED.notified,
+    enroute = EXCLUDED.enroute,
+    at_scene = EXCLUDED.at_scene,
+    depart_scene = EXCLUDED.depart_scene,
+    at_dest = EXCLUDED.at_dest,
+    back_in_service = EXCLUDED.back_in_service,
+    last_modified = EXCLUDED.last_modified
+WHERE mart.fact_incident.last_modified < EXCLUDED.last_modified;
