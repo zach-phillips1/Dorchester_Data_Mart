@@ -6,7 +6,7 @@ CREATE ROLE etl_writer WITH NOLOGIN;
 CREATE ROLE bi_reader WITH NOLOGIN;
 
 -- User Roles
-CREATE USER zach WITH NOLOGIN;
+CREATE USER zach WITH LOGIN INHERIT;
 GRANT etl_writer TO zach;
 CREATE USER bi_tool WITH NOLOGIN;
 GRANT bi_reader TO bi_tool;
