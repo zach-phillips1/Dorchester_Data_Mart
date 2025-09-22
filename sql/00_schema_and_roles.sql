@@ -8,13 +8,19 @@ CREATE ROLE bi_reader WITH NOLOGIN;
 -- User Roles
 CREATE USER zach WITH LOGIN INHERIT;
 GRANT etl_writer TO zach;
+
 CREATE USER bi_tool WITH NOLOGIN;
 GRANT bi_reader TO bi_tool;
 
 -- **Create Schemas**
 CREATE SCHEMA IF NOT EXISTS etl;
 ALTER SCHEMA etl OWNER TO ems_owner;
+
 CREATE SCHEMA IF NOT EXISTS stage;
 ALTER SCHEMA stage OWNER TO ems_owner;
+
 CREATE SCHEMA IF NOT EXISTS mart;
 ALTER SCHEMA mart OWNER TO ems_owner;
+
+CREATE SCHEMA IF NOT EXISTS land_raw;
+ALTER SCHEMA land_raw OWNER ems_owner;
