@@ -84,7 +84,7 @@ COMMENT ON COLUMN stage.crew_member_id_list IS $doc$
 desc: List of crew members as IDs
 source: CSV "Crew Member ID List"
 nemsis: eCrew.01
-rules: ID only, crew names not listed.
+rules: delimiter = | ; store as-is in stage; explode later for provider bridge
 $doc$;
 
 COMMENT ON COLUMN stage.psap_call_time IS $doc$
@@ -182,5 +182,110 @@ COMMENT ON COLUMN stage.transport_disposition IS $doc$
 desc: Transport disposition some possible values "Transport by this EMS Unit"
 source: CSV "Transport Disposition"
 nemsis: eDisposition.30
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.dispatch_reason IS $doc$
+desc: Dispatch reason from EMD
+source: CSV "Dispatch Reason"
+nemsis: eDispatch.01
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.dispatch_reason_with_code IS $doc$
+desc: Dispatch reason with code listing from CAD
+source: CSV "Dispatch Reason With Code"
+nemsis: eDispatch.01
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.primary_impression_code IS $doc$
+desc: Provider supplied primary impression code
+source: CSV "Primary Impression Code"
+nemsis: eSituation.11
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.primary_impression_desc IS $doc$
+desc: Provider supplied primary impression description label
+source: CSV "Primary Impression Description"
+nemsis: eSituation.11
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.secondary_impression_code_list IS $doc$
+desc: Provider supplied secondary impression code list
+source: CSV "Secondary Impression Code List"
+nemsis: eSituation.12
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.secondary_impression_desc_list IS $doc$
+desc: Provider supplied secondary impression description list
+source: CSV "Secondary Impression Description Only List"
+nemsis: eSituation.12
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.level_of_care_provided IS $doc$
+desc: Level of care that the patient required.
+source: CSV "Level Of Care Provided"
+nemsis: eDisposition.32
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.response_mode_to_scene IS $doc$
+desc: Whether lights and sirens were used on the way to the scene.
+source: CSV "Response Mode To Scene"
+nemsis: eResponse.23
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.transport_mode_from_scene IS $doc$
+desc: Whether lights and sirens were used on the way to the hospital.
+source: CSV "Disposition Transport Mode From Scene"
+nemsis: eDisposition.13
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.dest_odometer_reading IS $doc$
+desc: The documented ending mileage for the transport.
+source: CSV "Destination Vehicle Odometer Reading"
+nemsis: eResponse.21
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.scene_postal_code IS $doc$
+desc: The postal code of the scene.
+source: CSV "Scene Postal Code"
+nemsis: eScene.19
+rules: Should be a TEXT datatype to keep leading zeros. That should not happen in Dorchester
+$doc$
+
+COMMENT ON COLUMN stage.who_canceled IS $doc$
+desc: This is an Agency-specific supplemental question. 
+source: CSV "Who cancelled you?"
+nemsis: NULL
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.incident_status IS $doc$
+desc: The status of the ePCR whether it is completed, locked, or reviewed.
+source: CSV "Incident Status"
+nemsis: NULL
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.incident_validity_score IS $doc$
+desc: Tracks the validity score for the ePCR.
+source: CSV "Incident Validity Score"
+nemsis: NULL
+rules: 
+$doc$
+
+COMMENT ON COLUMN stage.last_modified IS $doc$
+desc: Tracks the last time the ePCR was modified. This is used for newest wins.
+source: CSV "Record Modification Date Time"
+nemsis: NULL
 rules: 
 $doc$
