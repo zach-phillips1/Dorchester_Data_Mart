@@ -20,6 +20,7 @@ Data is structured into **four zones**:
 
 1. **`land_raw`**
     
+    - **`land_raw` is being reserved for furture automation; current loads go directly to `stage`.**
     - Purpose: Immutable landing zone for incoming CSV files.
     - Content: Normalized data types, standardized timestamps, cleaned nulls.
     - Retention: Short-term (30-60 days), for traceability.
