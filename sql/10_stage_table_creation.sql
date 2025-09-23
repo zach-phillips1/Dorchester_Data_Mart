@@ -1,3 +1,7 @@
+BEGIN;
+
+SET ROLE ems_owner;
+
 CREATE TABLE IF NOT EXISTS stage.incidents_stg (
     -- Identifiers
     pcr_number                      TEXT NOT NULL,
@@ -289,3 +293,6 @@ source: CSV "Record Modification Date Time"
 nemsis: null
 rules: local time without TZ
 $doc$;
+
+COMMIT;
+RESET ROLE;
