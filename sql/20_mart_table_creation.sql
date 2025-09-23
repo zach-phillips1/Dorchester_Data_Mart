@@ -8,10 +8,12 @@ CREATE TABLE IF NOT EXISTS mart.dim_unit (
     notes               TEXT
 );
 
+-- Seeding unknown values.
 INSERT INTO mart.dim_unit (unit_code, service_level)
 VALUES ('_UNK', 'UNKNOWN')
 ON CONFLICT (unit_code) DO NOTHING;
 
+-- Adding the rule to normalize in case of manual entry.
 ALTER TABLE mart.dim_unit
     ADD CONSTRAINT ck_unit_code_normalized
     CHECK (unit_code = UPPER(BTRIM(unit_code)));
