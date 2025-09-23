@@ -12,6 +12,10 @@ INSERT INTO mart.dim_unit (unit_code, service_level)
 VALUES ('_UNK', 'UNKNOWN')
 ON CONFLICT (unit_code) DO NOTHING;
 
+ALTER TABLE mart.dim_unit
+    ADD CONSTRAINT ck_unit_code_normalized
+    CHECK (unit_code = UPPER(BTRIM(unit_code)));
+
 COMMENT ON TABLE mart.dim_unit IS $doc$
 purpose: Lookup for response units
 grain: 1 row per unit_code
