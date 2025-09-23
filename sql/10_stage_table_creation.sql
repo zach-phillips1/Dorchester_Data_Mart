@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS stage.incidents_stg (
     destination_name                TEXT,
     destination_code                TEXT,
     transport_disposition           TEXT,
+    unit_disposition                TEXT,
     -- Dispatch / clinical
     dispatch_reason                 TEXT,
     dispatch_reason_with_code       TEXT,
@@ -186,6 +187,13 @@ COMMENT ON COLUMN stage.incidents_stg.transport_disposition IS $doc$
 desc: Transport disposition some possible values "Transport by this EMS Unit"
 source: ImageTrend Report Writer — “Daily Incident List” (headers == column names)
 nemsis: eDisposition.30
+rules: 
+$doc$;
+
+COMMENT ON COLUMN stage.incidents_stg.unit_disposition IS $doc$
+desc: Unit disposition, such as "Patient contact made" or "Cancelled on Scene"
+source: ImageTrend Report Writer — “Daily Incident List” (headers == column names)
+nemsis: eDisposition.27
 rules: 
 $doc$;
 
