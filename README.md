@@ -25,12 +25,12 @@ PostgreSQL 15 star-schema data mart for EMS QA/QI. Sources are **ImageTrend eMed
 ## Overview
 - **DBMS:** PostgreSQL 15  
 - **Schemas:**  
-  - `land_raw` – landing zone (optional for raw files)  
+  - `land_raw` – landing zone (reserved, not utilized yet)
   - `stage` – lightly cleaned/typed staging tables  
   - `mart` – star schema (facts & dimensions)  
   - `etl` – logs, audit, config  
-- **Facts:** `fact_incident`, `fact_vital`, `fact_medication`, `fact_procedure`  
-- **Dimensions:** `dim_unit`, `dim_destination`, `dim_disposition`, `dim_provider`, `dim_medication`, `dim_procedure`, `dim_location`, `dim_date`  
+- **Facts:** None yet.  
+- **Dimensions:** `dim_unit`, `dim_destination`, `dim_disposition`
 - **Natural key:** `pcr_number`  
 - **Incremental rule:** “newer wins” via `last_modified`  
 - **Chronology rule:** `notified ≤ enroute ≤ at_scene ≤ depart_scene ≤ at_dest ≤ back_in_service`
@@ -55,11 +55,11 @@ etl/
   32_upsert_dim_destination.sql
   33_upsert_dim_disposition.sql
 sql/
-    00_schemas_and_roles.sql
-    10_stage_table_creation.sql
-    21_mart_dim_unit_table_creation.sql
-    22_mart_dim_dest_table_creation.sql
-    23_mart_dim_disposition_table_creation.sql
+  00_schemas_and_roles.sql
+  10_stage_table_creation.sql
+  21_mart_dim_unit_table_creation.sql
+  22_mart_dim_dest_table_creation.sql
+  23_mart_dim_disposition_table_creation.sql
 .gitignore
 LICENSE
 README.md
@@ -101,7 +101,7 @@ README.md
 ## Create Schemas & Roles
 Run:
 ```sql
-\i etl/sql/00_schemas_and_roles.sql
+\i sql/00_schemas_and_roles.sql
 ```
 This creates:
 - Schemas: `etl`, `land_raw`, `stage`, `mart`
@@ -274,3 +274,5 @@ LIMIT 50;
 
 ## License
 See `LICENSE`.
+
+
