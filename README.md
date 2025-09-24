@@ -51,16 +51,18 @@ docs/
   00_architechture.md
   10_design_document.md
 etl/
-  sql/
+  31_upsert_dim_unit.sql
+  32_upsert_dim_destination.sql
+  33_upsert_dim_disposition.sql
+sql/
     00_schemas_and_roles.sql
-    10_dim_tables.sql
-    20_fact_tables.sql
-    30_stage_tables.sql
-    40_upsert_incidents.sql
-  test.sql
+    10_stage_table_creation.sql
+    21_mart_dim_unit_table_creation.sql
+    22_mart_dim_dest_table_creation.sql
+    23_mart_dim_disposition_table_creation.sql
 .gitignore
 LICENSE
-README.md   <-- this file
+README.md
 ```
 
 ---
