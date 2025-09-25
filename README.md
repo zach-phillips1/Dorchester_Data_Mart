@@ -114,13 +114,13 @@ This creates:
 ## Create Tables
 Create dimensions and facts:
 ```sql
-\i etl/sql/10_dim_tables.sql
-\i etl/sql/20_fact_tables.sql
+\i sql/10_dim_tables.sql
+\i sql/20_fact_tables.sql
 ```
 
 Create staging tables:
 ```sql
-\i etl/sql/30_stage_tables.sql
+\i sql/30_stage_tables.sql
 ```
 
 > Tables are designed to keep **local times** (see policy below).
@@ -165,7 +165,7 @@ Choose either DBeaver GUI import or `\copy`.
 ## Promote to Mart (stage → mart)
 Run the upsert script (dedupe + newer-wins):
 ```sql
-\i etl/sql/40_upsert_incidents.sql
+\i sql/40_upsert_incidents.sql
 ```
 This:
 - Partitions `stage.incidents_stg` by `pcr_number`,

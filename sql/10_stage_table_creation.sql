@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS stage.incidents_stg (
     transport_disposition           TEXT,
     unit_disposition                TEXT,
     -- Dispatch / clinical
+    emd_card_number                 TEXT,
     dispatch_reason                 TEXT,
     dispatch_reason_with_code       TEXT,
     primary_impression_code         TEXT,
@@ -194,6 +195,13 @@ COMMENT ON COLUMN stage.incidents_stg.unit_disposition IS $doc$
 desc: Unit disposition, such as "Patient contact made" or "Cancelled on Scene"
 source: ImageTrend Report Writer — “Daily Incident List” (headers == column names)
 nemsis: eDisposition.27
+rules: 
+$doc$;
+
+COMMENT ON COLUMN stage.incidents_stg.emd_card_number IS $doc$
+desc: EMD card number
+source: ImageTrend Report Writer — “Daily Incident List” (headers == column names)
+nemsis: eDispatch.03
 rules: 
 $doc$;
 
