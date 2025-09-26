@@ -43,3 +43,6 @@ CREATE TABLE IF NOT EXISTS mart.fact_incident(
     emd_card_number                 TEXT,
     last_modified                   TIMESTAMP WITHOUT TIME ZONE
 )
+
+CREATE INDEX IF NOT EXISTS ix_fact_incident_pcr ON mart.fact_incident(pcr_number);
+
