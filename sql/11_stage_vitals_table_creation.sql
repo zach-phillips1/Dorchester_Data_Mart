@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS stage.vitals_stg (
     gcs_motor               TEXT,
     gcs_qualifier_list      TEXT,
     gcs_total               INTEGER,
-    avpu                    INTEGER,
+    avpu                    TEXT, 
 
     -- Temp
     temperature_f           INTEGER,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS stage.vitals_stg (
 
     -- Other scores
     reperfusion_checklist   TEXT,
-    apgar_score             INTEGER,
+    apgar_score             INTEGER, -- Might need to change due to Report Writer formating.
     revised_trauma_score    INTEGER
 );
 
