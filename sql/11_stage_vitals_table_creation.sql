@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS stage.vitals_stg (
     last_modified           TIMESTAMP WITHOUT TIME ZONE,
 
     -- Flags / qualifiers
-    obtained_prior_care     BOOLEAN,
+    obtained_prior_care     TEXT, -- Report Writer gives out "Yes", "No", or null.
 
     -- ECG / rhythm
     cardiac_rhythm          TEXT,
