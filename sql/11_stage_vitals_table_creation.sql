@@ -33,9 +33,9 @@ CREATE TABLE IF NOT EXISTS stage.vitals_stg (
     blood_glucose           INTEGER,
 
     -- Neuro (GCS/AVPU)
-    gcs_eye                 INTEGER,
-    gcs_verbal              INTEGER,
-    gcs_motor               INTEGER,
+    gcs_eye                 TEXT,
+    gcs_verbal              TEXT,
+    gcs_motor               TEXT,
     gcs_qualifier_list      TEXT,
     gcs_total               INTEGER,
     avpu                    INTEGER,
