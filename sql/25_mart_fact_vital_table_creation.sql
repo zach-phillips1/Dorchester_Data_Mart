@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS mart.dim_vital_type (
     notes                   TEXT
 );
 
-CREATE TABLE IF NOT EXISTS mart.fact_vital (
+CREATE TABLE IF NOT EXISTS mart.fact_vitals (
     pcr_number          TEXT NOT NULL,
     vital_type_key      INTEGER NOT NULL REFERENCES mart.dim_vital_type(vital_type_key),
     vital_taken_time    TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -26,10 +26,10 @@ CREATE TABLE IF NOT EXISTS mart.fact_vital (
     CONSTRAINT pk_fact_vital UNIQUE (pcr_number, vital_type_key, vital_taken_time)
 );
 
-CREATE INDEX IF NOT EXISTS ix_fact_vital_pcr            ON mart.fact_vital(pcr_number);
-CREATE INDEX IF NOT EXISTS ix_fact_vital_type           ON mart.fact_vital(vital_type_key);
-CREATE INDEX IF NOT EXISTS ix_fact_vital_taken_time     ON mart.fact_vital(vital_taken_time);
-CREATE INDEX IF NOT EXISTS ix_fact_vital_last_modified  ON mart.fact_vital(last_modified);
+CREATE INDEX IF NOT EXISTS ix_fact_vital_pcr            ON mart.fact_vitals(pcr_number);
+CREATE INDEX IF NOT EXISTS ix_fact_vital_type           ON mart.fact_vitals(vital_type_key);
+CREATE INDEX IF NOT EXISTS ix_fact_vital_taken_time     ON mart.fact_vitals(vital_taken_time);
+CREATE INDEX IF NOT EXISTS ix_fact_vital_last_modified  ON mart.fact_vitals(last_modified);
 
 COMMENT ON TABLE mart.fact_vitals IS
 'One row per vital measurement per PCR (unpivoted from stage.vitals_stg). Local times; newer-wins via last_modified.';
