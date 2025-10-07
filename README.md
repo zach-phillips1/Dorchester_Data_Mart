@@ -1,6 +1,10 @@
 # Dorchester EMS Data Mart
 
-PostgreSQL 15 star-schema data mart for EMS QA/QI. Sources are **ImageTrend eMeds Report Writer CSV exports** (NEMSIS v3.5 aligned). The goal is an auditable, reproducible warehouse for analytics and future Power BI dashboards.
+PostgreSQL 15 **star-schema data mart** for EMS QA/QI analytics.  
+Primary data sources are **ImageTrend eMeds Report Writer CSV exports** (NEMSIS v3.5 aligned).  
+The project’s goal is an **auditable, reproducible warehouse** for clinical quality tracking and future **Power BI dashboards**.
+
+---
 
 ## Contents
 - [Overview](#overview)
@@ -23,27 +27,45 @@ PostgreSQL 15 star-schema data mart for EMS QA/QI. Sources are **ImageTrend eMed
 ---
 
 ## Overview
-- **DBMS:** PostgreSQL 15  
-- **Schemas:**  
-  - `land_raw` – landing zone (reserved, not used yet)  
-  - `stage` – typed staging (permissive; duplicates allowed)  
-  - `mart` – star schema (facts & dimensions)  
-  - `etl` – QA views, logs, audit (in progress)  
-- **Stage built:** `stage.incidents_stg`  
-- **Dimensions built:** `dim_unit`, `dim_destination`, `dim_disposition`  
-- **Facts:** none yet (next step: `fact_incident`)  
-- **Natural key:** `pcr_number`  
-- **Incremental rule:** “newer wins” via `last_modified`  
-- **Chronology rule:** `notified ≤ enroute ≤ at_scene ≤ depart_scene ≤ at_dest ≤ back_in_service`
+**Database:** `ems_mart`  
+**DBMS:** PostgreSQL 15  
+**Schemas:**
+- `land_raw` – reserved landing zone (for future untyped imports)
+- `stage` – typed staging tables; duplicates allowed; permissive
+- `mart` – curated star schema for analytics (facts + dimensions)
+- `etl` – QA checks, logs, audit procedures, and helper views
+
+**Current Data Flow**
+- ✅ *Stage built:* `stage.incidents_stg`, `stage.vitals_stg`  
+- ✅ *Dimensions:* `dim_unit`, `dim_destination`, `dim_disposition`, `dim_vital_type`  
+- ✅ *Facts:* `fact_incident`, `fact_vital`  
+- ✅ *ETL scripts:* `31–42_upsert_*.sql`  
+- ✅ *Incremental rule:* “newer wins” via `last_modified`  
+
 
 ---
 
 ## Architecture
-- CSV exports from ImageTrend Report Writer are imported into `stage`.  
-- Promotion scripts normalize units/destinations/dispositions and upsert into `mart` dimensions.  
-- Facts will reference dimension surrogate keys; first fact to be built is `mart.fact_incident`.  
-- `etl` schema will store QA checks (e.g., chronology violations, disposition contradictions).  
-- Designed for SSH-tunneled access during prototyping; later migratable to county IT.
+1. **Source ingestion:**  
+ CSV exports from ImageTrend eMeds Report Writer are imported into the `stage` schema.
+
+2. **Promotion and normalization:**  
+ ETL scripts (`etl/*.sql`) normalize core domains such as units, destinations, and dispositions, inserting them into corresponding `mart.dim_*` tables.
+
+3. **Fact construction:**  
+ - `fact_incident` — one row per PCR (incident-level record).  
+ - `fact_vital` — one row per vital measurement (unpivoted from wide format).  
+
+4. **Data QA & validation:**  
+ The `etl` schema contains (or will contain) validation and anomaly views:
+ - Chronology checks  
+ - Missing required values (e.g., NEMSQA Trauma-01 pain scale)  
+ - Contradictions (e.g., no patient contact but vitals exist)
+
+5. **Design goals:**
+ - Role-based control for secure PHI handling  
+ - Incremental, re-runnable ETL  
+ - Power BI–ready data model  
 
 ---
 
@@ -56,12 +78,20 @@ etl/
   31_upsert_dim_unit.sql
   32_upsert_dim_destination.sql
   33_upsert_dim_disposition.sql
+  34_upsert_fact_incident.sql
+  36_upsert_dim_vital_type.sql
+  37_upsert_fact_vital.sql
+  42_upsert_fact_vital.sql
 sql/
   00_schema_and_roles.sql
-  10_stage_table_creation.sql
+  10_stage_incidents_table_creation.sql
+  11_stage_vitals_table_creation.sql
   21_mart_dim_unit_table_creation.sql
-  22_mart_dim_dest_table_creation.sql
+  22_mart_dim_destination_table_creation.sql
   23_mart_dim_disposition_table_creation.sql
+  24_mart_fact_incident_table_creation.sql
+  25_mart_dim_vital_type_table_creation.sql
+  26_mart_fact_vital_table_creation.sql
 .gitignore
 LICENSE
 README.md
@@ -86,7 +116,7 @@ psql "host=127.0.0.1 port=6543 dbname=ems_mart user=<your_user>"
 ## Setup
 1. **Clone the repo**
    ```bash
-   git clone <your_repo_url>
+   git clone https://github.com/zach-phillips1/Dorchester_Data_Mart.git
    cd DORCHESTER_DATA_MART
    ```
 2. **(Optional) Create a dedicated database**
@@ -111,32 +141,37 @@ This creates:
 ## Create Tables
 Create staging and dimensions:
 ```sql
-\i sql/10_stage_table_creation.sql
+\i sql/10_stage_incidents_table_creation.sql
+\i sql/11_stage_vitals_table_creation.sql
 \i sql/21_mart_dim_unit_table_creation.sql
-\i sql/22_mart_dim_dest_table_creation.sql
+\i sql/22_mart_dim_destination_table_creation.sql
 \i sql/23_mart_dim_disposition_table_creation.sql
+\i sql/24_mart_fact_incident_table_creation.sql
+\i sql/25_mart_dim_vital_type_table_creation.sql
+\i sql/26_mart_fact_vital_table_creation.sql
 ```
-
-> `fact_incident` table not yet created — this is the next milestone.
+Each table is idempotent and includes COMMENT ON statements for data dictionary export.
 
 ---
 
 ## Load Stage (CSV → stage)
 Choose either DBeaver GUI import or `\copy`.
 
-### Option A: DBeaver (GUI)
-- Right-click the target stage table (e.g., `stage.incidents_stg`) → **Import Data**.
-- Source: your CSV export.
-- Options: Header checked, delimiter comma, quote `"`, empty string → NULL.
-- Map columns by name → Finish.
+### Option A: Option A: DBeaver (GUI)
+- Right-click → Import Data
+- Source: Report Writer CSV
+- Options: Header checked, delimiter ,, empty strings → NULL
+- Map by name → Finish
 
 ### Option B: psql `\copy`
 ```sql
-\copy stage.incidents_stg FROM '/path/to/IncidentExport.csv'
+\copy stage.incidents_stg FROM '/path/to/incidents.csv'
   WITH (FORMAT csv, HEADER true, NULL '', DELIMITER ',', ENCODING 'UTF8');
-```
 
----
+\copy stage.vitals_stg FROM '/path/to/vitals.csv'
+  WITH (FORMAT csv, HEADER true, NULL '', DELIMITER ',', ENCODING 'UTF8');
+
+```
 
 ## Promote to Mart (stage → mart)
 
@@ -146,15 +181,19 @@ Run in order:
 \i etl/31_upsert_dim_unit.sql
 \i etl/32_upsert_dim_destination.sql
 \i etl/33_upsert_dim_disposition.sql
+\i etl/36_upsert_dim_vital_type.sql
 ```
 
 ### Fact upsert (next milestone)
-`mart.fact_incident` will be created and populated with:
-- All key timestamps  
-- FKs to unit, destination, transport disposition, and unit disposition  
-- Derived fields such as `transport_outcome`  
-- “newer wins” logic on `last_modified`  
-
+```sql
+\i etl/34_upsert_fact_incident.sql
+\i etl/42_upsert_fact_vital.sql
+```
+The vitals upsert performs:
+- Inline parsing of GCS component text (1–4 / 1–5 / 1–6)
+- Unpivot of wide columns into atomic rows
+- Deduplication (ROW_NUMBER by PCR + type + time)
+- Conflict handling with “newer wins” update logic
 ---
 
 ## Time Handling Policy
@@ -187,7 +226,11 @@ Row counts, duplicate detection, and incremental logic are already validated dur
 
 ## Data Dictionary
 - Column/table comments maintained in SQL via `COMMENT ON`.  
-- Future script will export comments into Markdown under `docs/`.  
+- Planned export process:
+```sql
+psql -d ems_mart -c "\d+ mart.fact_vital" > docs/data_dictionary.md
+```
+- Future automation will extract all momments into Mardown for versioning.
 
 ---
 
