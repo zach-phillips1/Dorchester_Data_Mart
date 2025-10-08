@@ -254,12 +254,16 @@ dedup AS (
         PARTITION BY u.pcr_number, d.vital_type_key, u.vital_taken_time
         ORDER BY u.last_modified DESC,
                  CASE WHEN u.value_numeric IS NOT NULL THEN 0 ELSE 1 END,
-                 u.value_text DESC
+                 NULLIF(btrim(u.value_text), '') DESC
       ) AS rn
     FROM unpivot u
     LEFT JOIN mart.dim_vital_type d
       ON d.vital_type_code = u.vital_type_code
     WHERE d.vital_type_key IS NOT NULL
+      AND (
+        u.value_numeric IS NOT NULL
+        OR NULLIF(btrim(u.value_text), '') IS NOT NULL
+      )
   ) x
   WHERE rn = 1
 )
