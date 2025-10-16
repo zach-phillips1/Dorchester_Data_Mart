@@ -1,60 +1,106 @@
--- sql/41_fact_procedure.sql
--- One row per performed procedure attempt/record.
+-- etl/41_upsert_fact_procedure.sql
+-- Load mart.fact_procedure from stage.procedures_stg
 -- Policies:
---   - Local timestamps (TIMESTAMP WITHOUT TIME ZONE)
---   - Newer-wins via last_modified
---   - De-dup within ETL by (pcr_number, procedure_time, procedure_key, crew_member_id)
-SET ROLE ems_owner;
+--   * Local timestamps only
+--   * Skip rows with NULL pcr_number or procedure_time
+--   * Join to mart.dim_procedure by procedure_code
+--   * Natural key: (pcr_number, procedure_time, procedure_key, COALESCE(crew_member_id,''))
+--   * Newer-wins by last_modified
+
+RESET ROLE; SET ROLE etl_writer;
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS mart.fact_procedure (
-    fact_procedure_key       BIGSERIAL PRIMARY KEY,
+WITH base AS (
+  SELECT
+    s.pcr_number,
+    s.procedure_time,
+    COALESCE(s.last_modified, s.procedure_time) AS last_modified,
 
-    -- Identity / chronology
-    pcr_number               TEXT NOT NULL,
-    procedure_time           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    last_modified            TIMESTAMP WITHOUT TIME ZONE,   -- from source export
-
-    -- Dimensions
-    procedure_key            BIGINT NOT NULL REFERENCES mart.dim_procedure(procedure_key),
-    -- Optional future dims: performer_role_key, access_location_key, authorization_key, etc.
-
-    -- Crew / context (kept as text for now; can be lifted to dims later)
-    crew_member_id           TEXT,          -- keep leading zeros
-    performer_role           TEXT,          -- eProcedures.10 (normalize later if needed)
-    prior_to_ems             BOOLEAN,       -- parsed from stage.prior_to_ems
-    procedure_authorization  TEXT,          -- eProcedures.11
-    authorizing_physician    TEXT,          -- eProcedures.12
-    vascular_access_location TEXT,          -- eProcedures.13 (normalize later if needed)
-
-    -- Core fields
-    equipment_size           TEXT,
-    attempts                 INTEGER,
-    successful               BOOLEAN,       -- parsed from stage.successful
-    patient_response         TEXT,
-
-    -- ETL bookkeeping
-    etl_loaded_at            TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now()
-);
-
-COMMENT ON TABLE  mart.fact_procedure IS 'Procedure facts (one row per recorded procedure on a PCR).';
-COMMENT ON COLUMN mart.fact_procedure.pcr_number               IS 'eRecord.01 – PCR ID';
-COMMENT ON COLUMN mart.fact_procedure.procedure_time           IS 'eProcedures.01 – local time performed';
-COMMENT ON COLUMN mart.fact_procedure.last_modified            IS 'Source last_modified; used for newer-wins.';
-COMMENT ON COLUMN mart.fact_procedure.procedure_key            IS 'FK → dim_procedure';
-COMMENT ON COLUMN mart.fact_procedure.prior_to_ems             IS 'Derived boolean from eProcedures.02';
-COMMENT ON COLUMN mart.fact_procedure.successful               IS 'Derived boolean from eProcedures.06';
-
--- Natural-ish uniqueness guard (ETL should upsert/merge on this)
--- NOTE: crew_member_id may be NULL in some feeds; include it in the key anyway.
-CREATE UNIQUE INDEX IF NOT EXISTS ux_fact_procedure_natkey
-ON mart.fact_procedure (pcr_number, procedure_time, procedure_key, COALESCE(crew_member_id, ''));
-
--- Helpful access paths
-CREATE INDEX IF NOT EXISTS ix_fact_procedure_pcr          ON mart.fact_procedure (pcr_number);
-CREATE INDEX IF NOT EXISTS ix_fact_procedure_time         ON mart.fact_procedure (procedure_time);
-CREATE INDEX IF NOT EXISTS ix_fact_procedure_prockey      ON mart.fact_procedure (procedure_key);
-CREATE INDEX IF NOT EXISTS ix_fact_procedure_success      ON mart.fact_procedure (successful);
+    -- Join key
+    NULLIF(btrim(s.procedure_code), '')         AS procedure_code,
+    -- Crew/context
+    s.crew_member_id,
+    s.performer_role,
+    s.prior_to_ems,
+    s.procedure_authorization,
+    s.authorizing_physician,
+    s.vascular_access_location,
+    -- Core
+    s.equipment_size,
+    s.attempts,
+    s.successful,
+    s.patient_response
+  FROM stage.procedures_stg s
+  WHERE s.pcr_number IS NOT NULL
+    AND s.procedure_time IS NOT NULL
+),
+parsed AS (
+  SELECT
+    b.*,
+    CASE
+      WHEN b.prior_to_ems IS NULL THEN NULL
+      WHEN lower(trim(b.prior_to_ems)) IN ('y','yes','t','true','1') THEN TRUE
+      WHEN lower(trim(b.prior_to_ems)) IN ('n','no','f','false','0') THEN FALSE
+      ELSE NULL
+    END AS prior_to_ems_bool,
+    CASE
+      WHEN b.successful IS NULL THEN NULL
+      WHEN lower(trim(b.successful)) IN ('y','yes','t','true','1') THEN TRUE
+      WHEN lower(trim(b.successful)) IN ('n','no','f','false','0') THEN FALSE
+      ELSE NULL
+    END AS successful_bool
+  FROM base b
+),
+joined AS (
+  SELECT
+    p.pcr_number,
+    p.procedure_time,
+    p.last_modified,
+    d.procedure_key,
+    p.crew_member_id,
+    p.performer_role,
+    p.prior_to_ems_bool        AS prior_to_ems,
+    p.procedure_authorization,
+    p.authorizing_physician,
+    p.vascular_access_location,
+    p.equipment_size,
+    p.attempts,
+    p.successful_bool          AS successful,
+    p.patient_response
+  FROM parsed p
+  JOIN mart.dim_procedure d
+    ON d.procedure_code = p.procedure_code
+)
+INSERT INTO mart.fact_procedure (
+  pcr_number, procedure_time, last_modified,
+  procedure_key,
+  crew_member_id, performer_role, prior_to_ems, procedure_authorization,
+  authorizing_physician, vascular_access_location,
+  equipment_size, attempts, successful, patient_response
+)
+SELECT
+  j.pcr_number, j.procedure_time, j.last_modified,
+  j.procedure_key,
+  j.crew_member_id, j.performer_role, j.prior_to_ems, j.procedure_authorization,
+  j.authorizing_physician, j.vascular_access_location,
+  j.equipment_size, j.attempts, j.successful, j.patient_response
+FROM joined j
+-- Natural-key upsert; index was created in DDL as ux_fact_procedure_natkey
+ON CONFLICT (pcr_number, procedure_time, procedure_key, COALESCE(crew_member_id, '')) DO UPDATE
+SET
+  last_modified            = EXCLUDED.last_modified,
+  crew_member_id           = EXCLUDED.crew_member_id,
+  performer_role           = EXCLUDED.performer_role,
+  prior_to_ems             = EXCLUDED.prior_to_ems,
+  procedure_authorization  = EXCLUDED.procedure_authorization,
+  authorizing_physician    = EXCLUDED.authorizing_physician,
+  vascular_access_location = EXCLUDED.vascular_access_location,
+  equipment_size           = EXCLUDED.equipment_size,
+  attempts                 = EXCLUDED.attempts,
+  successful               = EXCLUDED.successful,
+  patient_response         = EXCLUDED.patient_response
+WHERE EXCLUDED.last_modified > mart.fact_procedure.last_modified
+   OR mart.fact_procedure.last_modified IS NULL;
 
 COMMIT;
 RESET ROLE;
