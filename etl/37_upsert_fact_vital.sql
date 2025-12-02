@@ -1,7 +1,7 @@
 -- etl/42_upsert_fact_vital.sql
 -- Unpivot stage.vitals_stg (wide) into mart.fact_vital (one row per measurement)
 
-RESET ROLE; SET ROLE etl_writer;
+RESET ROLE; SET ROLE ems_owner;
 BEGIN;
 
 WITH base AS (

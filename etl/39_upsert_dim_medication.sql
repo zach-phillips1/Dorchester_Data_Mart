@@ -1,4 +1,4 @@
-RESET ROLE; SET ROLE etl_writer;
+RESET ROLE; SET ROLE ems_owner;
 BEGIN;
 
 WITH src AS (

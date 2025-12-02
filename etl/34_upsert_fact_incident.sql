@@ -1,5 +1,5 @@
 -- etl/41_upsert_fact_incident.sql
-RESET ROLE; SET ROLE etl_writer;
+RESET ROLE; SET ROLE ems_owner;
 BEGIN;
 
 WITH latest AS (
