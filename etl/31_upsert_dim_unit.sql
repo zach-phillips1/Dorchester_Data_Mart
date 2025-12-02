@@ -9,9 +9,11 @@ prepared AS (
   SELECT
     code AS unit_code,
     CASE
-      WHEN code IN ('EMS1','EMS10') THEN 'ALS'
-      WHEN code LIKE 'P%'           THEN 'ALS'
-      WHEN code LIKE 'A%'           THEN 'BLS'
+      WHEN code IN ('EMS1','EMS10')           THEN 'ALS'
+      WHEN code LIKE 'P%'                     THEN 'ALS'
+      WHEN code LIKE 'A%'                     THEN 'BLS'
+      WHEN code LIKE 'BLS%'                   THEN 'BLS'
+      WHEN code LIKE 'RE%' OR code LIKE 'BR%' THEN 'FIRST_RESPONDER'
       ELSE 'UNKNOWN'
     END AS service_level
   FROM src
