@@ -236,6 +236,35 @@ Current `mart` fact tables:
 
 These tables together support end‑to‑end clinical analytics across a full year of EMS operations.
 
+## Current Data Volumes
+
+Row counts below reflect the current snapshot used for the initial 2025 full-year export build.
+
+| Schema | Table              | Rows     |
+|--------|--------------------|----------|
+| mart   | dim_destination    | 11       |
+| mart   | dim_disposition    | 11       |
+| mart   | dim_medication     | 57       |
+| mart   | dim_procedure      | 84       |
+| mart   | dim_unit           | 35       |
+| mart   | dim_vital_type     | 31       |
+| mart   | fact_incident      | 7,143    |
+| mart   | fact_situation     | 4,847    |
+| mart   | fact_vital         | 272,399  |
+| mart   | fact_procedure     | 13,752   |
+| mart   | fact_medication    | 3,158    |
+| stage  | incidents_stg      | 7,142    |
+| stage  | situation_stg      | 5,420    |
+| stage  | vitals_stg         | 26,011   |
+| stage  | procedures_stg     | 13,768   |
+| stage  | medications_stg    | 3,163    |
+
+**Notes**
+
+- `fact_vital` is long/unpivoted, so its row count is much higher than incidents.
+- Small differences between `stage` and `mart` for some tables reflect intentional filtering and deduplication during ETL (e.g., removing rows with missing keys or timestamps).
+
+
 ---
 
 ## Repository Structure
