@@ -437,6 +437,32 @@ More detailed measure definitions and SQL/R examples will live in `docs/` as the
 
 ---
 
+## Example Analytics: TRAUMA-01 (Pain Assessment for Trauma Patients)
+
+This data mart is designed to support NEMSQA-aligned EMS quality measures.  
+As an example, the **TRAUMA-01** measure (pain assessment for trauma patients with normal mentation) was implemented using:
+
+- `fact_incident`
+- `fact_situation` (injury flag, impressions)
+- `fact_vital` (AVPU / GCS / Pain Score fields)
+- `dim_disposition` (transport vs non-transport)
+
+Once the model was complete, Dorchester EMS produced a full-year TRAUMA-01 trend showing:
+
+- **Significant documentation gaps early in the year**  
+- A **sharp improvement beginning mid-September**, corresponding to a state-level documentation validation added in eMeds
+
+This example illustrates how the mart supports:
+- Longitudinal QA/QI monitoring  
+- Detection of documentation issues  
+- Evaluation of process changes  
+- Compliance tracking across operational and clinical domains  
+
+(A full case study or measure definition will be added to `docs/`.)
+
+
+---
+
 ## Known ImageTrend / eMeds Caveats
 
 This project is opinionated by experience with the **Maryland eMeds configuration** of ImageTrend. Some common quirks:
