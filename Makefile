@@ -4,7 +4,7 @@
 # -----------------------------
 
 # Defaults (override with env vars if needed)
-DB_HOST ?= 192.168.42.184
+DB_HOST ?= localhost
 DB_PORT ?= 5432
 DB_NAME ?= ems_mart
 DB_USER ?= zach
